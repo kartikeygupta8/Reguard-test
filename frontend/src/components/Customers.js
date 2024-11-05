@@ -23,9 +23,11 @@ function Customers() {
         <label htmlFor="columnSelect" style={{ marginRight: '10px' }}>Select column to display:</label>
         <select id="columnSelect" value={selectedColumn} onChange={handleColumnChange} style={{ padding: '5px', fontSize: '16px' }}>
           <option value="all">All</option>
-          <option value="name">Name</option>
+          <option value="firstName">First Name</option>
+          <option value="lastName">Last Name</option>
           <option value="email">Email</option>
-          <option value="phone">Phone</option>
+          <option value="mainPhone">Main Phone</option>
+          <option value="mobilePhone">Mobile Phone</option>
         </select>
       </div>
 
@@ -33,17 +35,25 @@ function Customers() {
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
           <thead>
             <tr>
-              <th style={tableHeaderStyle}>Name</th>
+            <th style={tableHeaderStyle}>ID</th>
+
+              <th style={tableHeaderStyle}>First Name</th>
+              <th style={tableHeaderStyle}>Last Name</th>
               <th style={tableHeaderStyle}>Email</th>
-              <th style={tableHeaderStyle}>Phone</th>
+              <th style={tableHeaderStyle}>Main Phone</th>
+              <th style={tableHeaderStyle}>Mobile Phone</th>
             </tr>
           </thead>
           <tbody>
             {customers.map(customer => (
-              <tr key={customer.customer_id}>
-                <td style={tableDataStyle}>{customer.name}</td>
+              <tr key={customer.id}>
+                <td style={tableDataStyle}>{customer.id}</td>
+
+                <td style={tableDataStyle}>{customer.firstName}</td>
+                <td style={tableDataStyle}>{customer.lastName}</td>
                 <td style={tableDataStyle}>{customer.email}</td>
-                <td style={tableDataStyle}>{customer.phone}</td>
+                <td style={tableDataStyle}>{customer.mainPhone}</td>
+                <td style={tableDataStyle}>{customer.mobilePhone}</td>
               </tr>
             ))}
           </tbody>
@@ -51,10 +61,12 @@ function Customers() {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {customers.map(customer => (
-            <li key={customer.customer_id} style={listItemStyle}>
-              {selectedColumn === 'name' && customer.name}
+            <li key={customer.id} style={listItemStyle}>
+              {selectedColumn === 'firstName' && customer.firstName}
+              {selectedColumn === 'lastName' && customer.lastName}
               {selectedColumn === 'email' && customer.email}
-              {selectedColumn === 'phone' && customer.phone}
+              {selectedColumn === 'mainPhone' && customer.mainPhone}
+              {selectedColumn === 'mobilePhone' && customer.mobilePhone}
             </li>
           ))}
         </ul>

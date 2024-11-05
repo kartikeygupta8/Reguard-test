@@ -68,10 +68,9 @@ app.put('/claims/:id', (req, res) => {
     const claimId = req.params.id;
     const updatedStatus = req.body.claim_status;
     db.query(
-        'UPDATE Claims SET claim_status = ? WHERE claim_id = ?',
+        'UPDATE Claims SET status = ? WHERE id = ?',
         [updatedStatus, claimId],
         (err, result) => {
-            console.log({result})
             if (err) return res.status(500).send(err);
             res.json({ message: 'Claim status updated' });
         }

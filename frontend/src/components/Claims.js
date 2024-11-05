@@ -3,25 +3,35 @@ import axios from 'axios';
 
 function Claims() {
   const [claims, setClaims] = useState([]);
-  const [newClaim, setNewClaim] = useState({ purchase_id: '', claim_status: '', claim_date: '' });
+  const [newClaim, setNewClaim] = useState({ purchaseId: '', status: '', claimDate: '' });
   const [updatedStatus, setUpdatedStatus] = useState({ id: '', status: '' });
   const [selectedColumn, setSelectedColumn] = useState('all');
-
-  const handleData=()=>{
-    axios.get('http://localhost:3000/claims')
-    .then(response => setClaims(response.data))
-    .catch(error => console.error('Error fetching claims:', error));
+  function generateRandomId() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 10; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        result += characters[randomIndex];
+    }
+    return result;  
   }
+
+  const handleData = () => {
+    axios.get('http://localhost:3000/claims')
+      .then(response => setClaims(response.data))
+      .catch(error => console.error('Error fetching claims:', error));
+  };
+
   useEffect(() => {
     handleData();
   }, []);
 
   const handleAddClaim = () => {
-    axios.post('http://localhost:3000/claims', newClaim)
+    axios.post('http://localhost:3000/claims', {...newClaim,id:generateRandomId()})
       .then(response => {
-        setClaims([...claims, response.data]);
-        setNewClaim({ purchase_id: '', claim_status: '', claim_date: '' });
-        handleData()
+        setClaims([...claims, response.data,]);
+        setNewClaim({ purchaseId: '', status: '', claimDate: '' });
+        handleData();
       })
       .catch(error => console.error('Error adding claim:', error));
   };
@@ -30,9 +40,11 @@ function Claims() {
     axios.put(`http://localhost:3000/claims/${updatedStatus.id}`, { claim_status: updatedStatus.status })
       .then(response => {
         setClaims(claims.map(claim =>
-          claim.claim_id === parseInt(updatedStatus.id) ? { ...claim, claim_status: updatedStatus.status } : claim
+          claim.id === updatedStatus.id ? { ...claim, status: updatedStatus.status } : claim
         ));
         setUpdatedStatus({ id: '', status: '' });
+        handleData();
+
       })
       .catch(error => console.error('Error updating claim status:', error));
   };
@@ -55,9 +67,9 @@ function Claims() {
         <label htmlFor="columnSelect" style={{ marginRight: '10px' }}>Select column to display:</label>
         <select id="columnSelect" value={selectedColumn} onChange={handleColumnChange} style={{ padding: '5px', fontSize: '16px' }}>
           <option value="all">All</option>
-          <option value="purchase_id">Purchase ID</option>
-          <option value="claim_status">Claim Status</option>
-          <option value="claim_date">Claim Date</option>
+          <option value="purchaseId">Purchase ID</option>
+          <option value="status">Claim Status</option>
+          <option value="claimDate">Claim Date</option>
         </select>
       </div>
 
@@ -65,21 +77,21 @@ function Claims() {
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
           <thead>
             <tr>
-            <th style={tableHeaderStyle}>Claim ID</th>
-
+              <th style={tableHeaderStyle}>Claim ID</th>
               <th style={tableHeaderStyle}>Purchase ID</th>
-              <th style={tableHeaderStyle}>Claim Status</th>
+              <th style={tableHeaderStyle}>Status</th>
               <th style={tableHeaderStyle}>Claim Date</th>
+              <th style={tableHeaderStyle}>Created At</th>
             </tr>
           </thead>
           <tbody>
             {claims.map(claim => (
-              <tr key={claim.claim_id}>
-                <td style={tableDataStyle}>{claim.claim_id}</td>
-
-                <td style={tableDataStyle}>{claim.purchase_id}</td>
-                <td style={tableDataStyle}>{claim.claim_status}</td>
-                <td style={tableDataStyle}>{formatDate(claim.claim_date)}</td>
+              <tr key={claim.id}>
+                <td style={tableDataStyle}>{claim.id}</td>
+                <td style={tableDataStyle}>{claim.purchaseId}</td>
+                <td style={tableDataStyle}>{claim.status}</td>
+                <td style={tableDataStyle}>{formatDate(claim.claimDate)}</td>
+                <td style={tableDataStyle}>{formatDate(claim.createdAt)}</td>
               </tr>
             ))}
           </tbody>
@@ -87,10 +99,10 @@ function Claims() {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {claims.map(claim => (
-            <li key={claim.claim_id} style={listItemStyle}>
-              {selectedColumn === 'purchase_id' && `Purchase ID: ${claim.purchase_id}`}
-              {selectedColumn === 'claim_status' && `Claim Status: ${claim.claim_status}`}
-              {selectedColumn === 'claim_date' && `Claim Date: ${formatDate(claim.claim_date)}`}
+            <li key={claim.id} style={listItemStyle}>
+              {selectedColumn === 'purchaseId' && `Purchase ID: ${claim.purchaseId}`}
+              {selectedColumn === 'status' && `Claim Status: ${claim.status}`}
+              {selectedColumn === 'claimDate' && `Claim Date: ${formatDate(claim.claimDate)}`}
             </li>
           ))}
         </ul>
@@ -100,21 +112,21 @@ function Claims() {
       <div style={formContainerStyle}>
         <input
           placeholder="Purchase ID"
-          value={newClaim.purchase_id}
-          onChange={(e) => setNewClaim({ ...newClaim, purchase_id: e.target.value })}
+          value={newClaim.purchaseId}
+          onChange={(e) => setNewClaim({ ...newClaim, purchaseId: e.target.value })}
           style={inputStyle}
         />
         <input
-          placeholder="Claim Status"
-          value={newClaim.claim_status}
-          onChange={(e) => setNewClaim({ ...newClaim, claim_status: e.target.value })}
+          placeholder="Status"
+          value={newClaim.status}
+          onChange={(e) => setNewClaim({ ...newClaim, status: e.target.value })}
           style={inputStyle}
         />
         <input
           type="date"
           placeholder="Claim Date"
-          value={newClaim.claim_date}
-          onChange={(e) => setNewClaim({ ...newClaim, claim_date: e.target.value })}
+          value={newClaim.claimDate}
+          onChange={(e) => setNewClaim({ ...newClaim, claimDate: e.target.value })}
           style={inputStyle}
         />
         <button onClick={handleAddClaim} style={buttonStyle}>Add Claim</button>

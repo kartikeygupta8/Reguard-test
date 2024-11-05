@@ -3,7 +3,7 @@ import axios from 'axios';
 
 function Purchases() {
   const [purchases, setPurchases] = useState([]);
-  const [newPurchase, setNewPurchase] = useState({ customer_id: '', purchase_date: '', amount: '' });
+  const [newPurchase, setNewPurchase] = useState({ id: '', purchaseDate: '', totalSaleAmount: '' });
   const [selectedColumn, setSelectedColumn] = useState('all');
 
   const getData = () => {
@@ -20,8 +20,7 @@ function Purchases() {
     axios.post('http://localhost:3000/purchases', newPurchase)
       .then(response => {
         setPurchases([...purchases, response.data]);
-        setNewPurchase({ customer_id: '', purchase_date: '', amount: '' });
-        getData();
+        setNewPurchase({ id: '', purchase_date: '', totalSaleAmount: '' });
       })
       .catch(error => console.error('Error adding purchase:', error));
   };
@@ -54,17 +53,21 @@ function Purchases() {
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
           <thead>
             <tr>
+            <th style={tableHeaderStyle}>Serial no</th>
+
               <th style={tableHeaderStyle}>Customer ID</th>
               <th style={tableHeaderStyle}>Purchase Date</th>
               <th style={tableHeaderStyle}>Amount</th>
             </tr>
           </thead>
           <tbody>
-            {purchases.map(purchase => (
-              <tr key={purchase.purchase_id}>
-                <td style={tableDataStyle}>{purchase.customer_id}</td>
-                <td style={tableDataStyle}>{formatDate(purchase.purchase_date)}</td>
-                <td style={tableDataStyle}>${purchase.amount}</td>
+            {purchases.map((purchase,idx) => (
+              <tr key={purchase.id}>
+                <td style={tableDataStyle}>{idx+1}</td>
+
+                <td style={tableDataStyle}>{purchase.customerId}</td>
+                <td style={tableDataStyle}>{formatDate(purchase.purchaseDate)}</td>
+                <td style={tableDataStyle}>${parseFloat(purchase.totalSaleAmount).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -72,10 +75,10 @@ function Purchases() {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {purchases.map(purchase => (
-            <li key={purchase.purchase_id} style={listItemStyle}>
-              {selectedColumn === 'customer_id' && `Customer ID: ${purchase.customer_id}`}
-              {selectedColumn === 'purchase_date' && `Date: ${formatDate(purchase.purchase_date)}`}
-              {selectedColumn === 'amount' && `Amount: $${purchase.amount}`}
+            <li key={purchase.id} style={listItemStyle}>
+              {selectedColumn === 'customer_id' && `Customer ID: ${purchase.customerId}`}
+              {selectedColumn === 'purchase_date' && `Date: ${formatDate(purchase.purchaseDate)}`}
+              {selectedColumn === 'amount' && `Amount: $${parseFloat(purchase.totalSaleAmount).toFixed(2)}`}
             </li>
           ))}
         </ul>
@@ -86,21 +89,21 @@ function Purchases() {
         <input
           placeholder="Customer ID"
           value={newPurchase.customer_id}
-          onChange={(e) => setNewPurchase({ ...newPurchase, customer_id: e.target.value })}
+          onChange={(e) => setNewPurchase({ ...newPurchase, id: e.target.value })}
           style={inputStyle}
         />
         <input
           type="date"
           placeholder="Purchase Date"
-          value={newPurchase.purchase_date}
-          onChange={(e) => setNewPurchase({ ...newPurchase, purchase_date: e.target.value })}
+          value={newPurchase.purchaseDate}
+          onChange={(e) => setNewPurchase({ ...newPurchase, purchaseDate: e.target.value })}
           style={inputStyle}
         />
         <input
           type="number"
-          placeholder="Amount"
-          value={newPurchase.amount}
-          onChange={(e) => setNewPurchase({ ...newPurchase, amount: e.target.value })}
+          placeholder="Total Sale Amount"
+          value={newPurchase.totalSaleAmount}
+          onChange={(e) => setNewPurchase({ ...newPurchase, totalSaleAmount: e.target.value })}
           style={inputStyle}
         />
         <button onClick={handleAddPurchase} style={buttonStyle}>
