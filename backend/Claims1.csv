@@ -1,0 +1,6 @@
+claim_id,purchase_id,claim_status,claim_date
+1001,101,Approved,2024-01-20
+1002,102,Rejected,2024-02-25
+1003,103,Pending,2024-03-10
+1004,104,Approved,2024-04-15
+1005,105,Rejected,2024-05-30

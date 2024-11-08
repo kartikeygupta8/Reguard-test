@@ -6,14 +6,18 @@ function Claims() {
   const [newClaim, setNewClaim] = useState({ purchaseId: '', status: '', claimDate: '' });
   const [updatedStatus, setUpdatedStatus] = useState({ id: '', status: '' });
   const [selectedColumn, setSelectedColumn] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const claimsPerPage = 5; // Number of items per page
+  const totalPages = Math.ceil(claims.length / claimsPerPage);
+
   function generateRandomId() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 10; i++) {
-        const randomIndex = Math.floor(Math.random() * characters.length);
-        result += characters[randomIndex];
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
     }
-    return result;  
+    return result;
   }
 
   const handleData = () => {
@@ -27,9 +31,9 @@ function Claims() {
   }, []);
 
   const handleAddClaim = () => {
-    axios.post('http://localhost:3000/claims', {...newClaim,id:generateRandomId()})
+    axios.post('http://localhost:3000/claims', { ...newClaim, id: generateRandomId() })
       .then(response => {
-        setClaims([...claims, response.data,]);
+        setClaims([...claims, response.data]);
         setNewClaim({ purchaseId: '', status: '', claimDate: '' });
         handleData();
       })
@@ -44,7 +48,6 @@ function Claims() {
         ));
         setUpdatedStatus({ id: '', status: '' });
         handleData();
-
       })
       .catch(error => console.error('Error updating claim status:', error));
   };
@@ -53,15 +56,34 @@ function Claims() {
     setSelectedColumn(event.target.value);
   };
 
-  // Format date as dd/mm/yyyy
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // dd/mm/yyyy format
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const indexOfLastClaim = currentPage * claimsPerPage;
+  const indexOfFirstClaim = indexOfLastClaim - claimsPerPage;
+  const currentClaims = claims.slice(indexOfFirstClaim, indexOfLastClaim);
+
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(claims.length / claimsPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h2 style={{ color: '#333', marginBottom: '10px' }}>Claims</h2>
+
+      <div style={{ marginBottom: '10px' }}>
+        <strong>Total Claims: {claims.length}</strong>
+      </div>
 
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="columnSelect" style={{ marginRight: '10px' }}>Select column to display:</label>
@@ -85,7 +107,7 @@ function Claims() {
             </tr>
           </thead>
           <tbody>
-            {claims.map(claim => (
+            {currentClaims.map(claim => (
               <tr key={claim.id}>
                 <td style={tableDataStyle}>{claim.id}</td>
                 <td style={tableDataStyle}>{claim.purchaseId}</td>
@@ -98,7 +120,7 @@ function Claims() {
         </table>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          {claims.map(claim => (
+          {currentClaims.map(claim => (
             <li key={claim.id} style={listItemStyle}>
               {selectedColumn === 'purchaseId' && `Purchase ID: ${claim.purchaseId}`}
               {selectedColumn === 'status' && `Claim Status: ${claim.status}`}
@@ -107,6 +129,32 @@ function Claims() {
           ))}
         </ul>
       )}
+
+      <div style={{ display: 'flex',justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
+        <button onClick={handlePreviousPage} disabled={currentPage === 1} style={{
+            padding: '8px 12px',
+            margin: '0 5px',
+            backgroundColor: currentPage === 1 ? '#ccc' : '#f2f2f2',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+          }}>
+            &larr; 
+        </button>
+        <span style={{ margin: '0 10px' }}>Page {currentPage} of {Math.ceil(claims.length / claimsPerPage)}</span>
+        <button onClick={handleNextPage} disabled={currentPage === Math.ceil(claims.length / claimsPerPage)}  style={{
+            padding: '8px 12px',
+            margin: '0 5px',
+            backgroundColor: currentPage === totalPages ? '#ccc' : '#f2f2f2',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+          }}>
+        &rarr;
+
+        </button>
+      </div>
 
       <h3 style={{ marginTop: '20px' }}>Add New Claim</h3>
       <div style={formContainerStyle}>
@@ -194,6 +242,16 @@ const buttonStyle = {
   border: 'none',
   borderRadius: '5px',
   cursor: 'pointer'
+};
+
+const paginationButtonStyle = {
+  padding: '8px 12px',
+  backgroundColor: '#007bff',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  margin: '0 5px'
 };
 
 export default Claims;

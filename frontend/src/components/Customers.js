@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Customers() {
   const [customers, setCustomers] = useState([]);
-  const [selectedColumn, setSelectedColumn] = useState('all'); // Default selected column
+  const [selectedColumn, setSelectedColumn] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const customersPerPage = 5;
 
   useEffect(() => {
     axios.get('http://localhost:3000/customers')
@@ -15,9 +18,27 @@ function Customers() {
     setSelectedColumn(event.target.value);
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+const navigate=useNavigate();
+  const indexOfLastCustomer = currentPage * customersPerPage;
+  const indexOfFirstCustomer = indexOfLastCustomer - customersPerPage;
+  const currentCustomers = customers.slice(indexOfFirstCustomer, indexOfLastCustomer);
+  const totalPages = Math.ceil(customers.length / customersPerPage);
+
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h2 style={{ color: '#333', marginBottom: '10px' }}>Customers</h2>
+      <p>Total Customers: {customers.length}</p>
 
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="columnSelect" style={{ marginRight: '10px' }}>Select column to display:</label>
@@ -30,13 +51,12 @@ function Customers() {
           <option value="mobilePhone">Mobile Phone</option>
         </select>
       </div>
-
+``
       {selectedColumn === 'all' ? (
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
           <thead>
             <tr>
-            <th style={tableHeaderStyle}>ID</th>
-
+              <th style={tableHeaderStyle}>ID</th>
               <th style={tableHeaderStyle}>First Name</th>
               <th style={tableHeaderStyle}>Last Name</th>
               <th style={tableHeaderStyle}>Email</th>
@@ -45,10 +65,9 @@ function Customers() {
             </tr>
           </thead>
           <tbody>
-            {customers.map(customer => (
-              <tr key={customer.id}>
+            {currentCustomers.map(customer => (
+              <tr key={customer.id} onClick={()=>navigate(`/userclaims/${customer.id}`)} style={{cursor:"pointer"}}>
                 <td style={tableDataStyle}>{customer.id}</td>
-
                 <td style={tableDataStyle}>{customer.firstName}</td>
                 <td style={tableDataStyle}>{customer.lastName}</td>
                 <td style={tableDataStyle}>{customer.email}</td>
@@ -60,7 +79,7 @@ function Customers() {
         </table>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          {customers.map(customer => (
+          {currentCustomers.map(customer => (
             <li key={customer.id} style={listItemStyle}>
               {selectedColumn === 'firstName' && customer.firstName}
               {selectedColumn === 'lastName' && customer.lastName}
@@ -71,6 +90,43 @@ function Customers() {
           ))}
         </ul>
       )}
+
+      {/* Pagination controls */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
+        <button
+          onClick={handlePrevious}
+          disabled={currentPage === 1}
+          style={{
+            padding: '8px 12px',
+            margin: '0 5px',
+            backgroundColor: currentPage === 1 ? '#ccc' : '#f2f2f2',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+          }}
+        >
+          &larr;
+        </button>
+
+        <span style={{ padding: '0 15px', fontSize: '16px' }}>Page {currentPage} of {totalPages}</span>
+
+        <button
+          onClick={handleNext}
+          disabled={currentPage === totalPages}
+          style={{
+            padding: '8px 12px',
+            margin: '0 5px',
+            backgroundColor: currentPage === totalPages ? '#ccc' : '#f2f2f2',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+          }}
+        >
+           &rarr;
+        </button>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import Customers from './components/Customers';
 import Purchases from './components/Purchases';
 import Claims from './components/Claims';
+import UserClaims from './components/userClaims';
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/purchases" element={<Purchases />} />
             <Route path="/claims" element={<Claims />} />
+            <Route path="/userclaims/:customerId" element={<UserClaims />} /> 
+
           </Routes>
         </main>
       </div>

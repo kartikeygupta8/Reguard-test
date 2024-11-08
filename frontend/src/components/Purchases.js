@@ -5,6 +5,8 @@ function Purchases() {
   const [purchases, setPurchases] = useState([]);
   const [newPurchase, setNewPurchase] = useState({ id: '', purchaseDate: '', totalSaleAmount: '' });
   const [selectedColumn, setSelectedColumn] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const purchasesPerPage = 5;
 
   const getData = () => {
     axios.get('http://localhost:3000/purchases')
@@ -20,7 +22,7 @@ function Purchases() {
     axios.post('http://localhost:3000/purchases', newPurchase)
       .then(response => {
         setPurchases([...purchases, response.data]);
-        setNewPurchase({ id: '', purchase_date: '', totalSaleAmount: '' });
+        setNewPurchase({ id: '', purchaseDate: '', totalSaleAmount: '' });
       })
       .catch(error => console.error('Error adding purchase:', error));
   };
@@ -29,15 +31,28 @@ function Purchases() {
     setSelectedColumn(event.target.value);
   };
 
-  // Format date as dd/mm/yyyy
+  const handlePrevious = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const indexOfLastPurchase = currentPage * purchasesPerPage;
+  const indexOfFirstPurchase = indexOfLastPurchase - purchasesPerPage;
+  const currentPurchases = purchases.slice(indexOfFirstPurchase, indexOfLastPurchase);
+  const totalPages = Math.ceil(purchases.length / purchasesPerPage);
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // dd/mm/yyyy format
+    return date.toLocaleDateString('en-GB');
   };
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h2 style={{ color: '#333', marginBottom: '10px' }}>Purchases</h2>
+      <p>Total Purchases: {purchases.length}</p>
 
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="columnSelect" style={{ marginRight: '10px' }}>Select column to display:</label>
@@ -53,18 +68,16 @@ function Purchases() {
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
           <thead>
             <tr>
-            <th style={tableHeaderStyle}>Serial no</th>
-
+              <th style={tableHeaderStyle}>Serial No</th>
               <th style={tableHeaderStyle}>Customer ID</th>
               <th style={tableHeaderStyle}>Purchase Date</th>
               <th style={tableHeaderStyle}>Amount</th>
             </tr>
           </thead>
           <tbody>
-            {purchases.map((purchase,idx) => (
+            {currentPurchases.map((purchase, idx) => (
               <tr key={purchase.id}>
-                <td style={tableDataStyle}>{idx+1}</td>
-
+                <td style={tableDataStyle}>{indexOfFirstPurchase + idx + 1}</td>
                 <td style={tableDataStyle}>{purchase.customerId}</td>
                 <td style={tableDataStyle}>{formatDate(purchase.purchaseDate)}</td>
                 <td style={tableDataStyle}>${parseFloat(purchase.totalSaleAmount).toFixed(2)}</td>
@@ -74,7 +87,7 @@ function Purchases() {
         </table>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          {purchases.map(purchase => (
+          {currentPurchases.map(purchase => (
             <li key={purchase.id} style={listItemStyle}>
               {selectedColumn === 'customer_id' && `Customer ID: ${purchase.customerId}`}
               {selectedColumn === 'purchase_date' && `Date: ${formatDate(purchase.purchaseDate)}`}
@@ -84,11 +97,48 @@ function Purchases() {
         </ul>
       )}
 
+      {/* Pagination controls */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
+        <button
+          onClick={handlePrevious}
+          disabled={currentPage === 1}
+          style={{
+            padding: '8px 12px',
+            margin: '0 5px',
+            backgroundColor: currentPage === 1 ? '#ccc' : '#f2f2f2',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+          }}
+        >
+          &larr; 
+        </button>
+
+        <span style={{ padding: '0 15px', fontSize: '16px' }}>Page {currentPage} of {totalPages}</span>
+
+        <button
+          onClick={handleNext}
+          disabled={currentPage === totalPages}
+          style={{
+            padding: '8px 12px',
+            margin: '0 5px',
+            backgroundColor: currentPage === totalPages ? '#ccc' : '#f2f2f2',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+          }}
+        >
+           &rarr;
+        </button>
+      </div>
+
       <h3 style={{ marginTop: '20px' }}>Add New Purchase</h3>
       <div style={formContainerStyle}>
         <input
           placeholder="Customer ID"
-          value={newPurchase.customer_id}
+          value={newPurchase.customerId}
           onChange={(e) => setNewPurchase({ ...newPurchase, id: e.target.value })}
           style={inputStyle}
         />

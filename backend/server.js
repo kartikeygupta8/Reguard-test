@@ -76,6 +76,14 @@ app.put('/claims/:id', (req, res) => {
         }
     );
 });
+app.get('/claims/customer/:customerId', (req, res) => {
+    const customerId = req.params.customerId;
+    console.log({req})
+    db.query('SELECT * FROM Claims WHERE customerId = ?', [customerId], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.json(results);
+    });
+});
 
 // Start the server
 app.listen(3000, () => {
